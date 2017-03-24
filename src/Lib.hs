@@ -97,11 +97,11 @@ makeHand (a,b,c,d,e) = let cardList = [a,b,c,d,e]
                           getQuadruple numbers,
                           getFullHouse numbers,
                           getFlush suits numbers,
-                         getStraight numbers,
-                         getTwoPair numbers,
-                         getTriple numbers,
-                         getPair numbers,
-                         Just $ (HTOneHigh, descending)
+                          getStraight numbers,
+                          getTwoPair numbers,
+                          getTriple numbers,
+                          getPair numbers,
+                          Just $ (HTOneHigh, descending)
                        ]
 
 newtype CardCollection = CardCollection (Card, Card, Card, Card, Card) deriving (Eq, Show)
