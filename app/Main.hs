@@ -1,25 +1,34 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
 import Lib as L
 import Data.Maybe
 import Control.Monad
+import Control.Monad.Trans.Either
+import Control.Monad.Trans.Class
+import Data.Either
 
-getAnswer rawFirst rawSecond = do
-  firstHand <- parseHand rawFirst
-  secondHand <- parseHand rawSecond
-  return $ compare firstHand secondHand
+parseHandE s = let parsed = parseHand s
+               in if isJust parsed
+                 then right parsed
+                 else left "Parse Error"
+
+playHand :: EitherT String IO ()
+playHand = do
+  lift $ putStrLn "First hand plz"
+  rawFirst <- lift getLine
+  firstHand <- parseHandE rawFirst
+  lift $ putStrLn "Second hand plz"
+  rawSecond <- lift getLine
+  secondHand <- parseHandE rawSecond
+  let answer = compare firstHand secondHand
+  lift $ putStrLn $ "\n*******************\nFirst hand was " ++ (show answer) ++ " second hand\n*******************"
+  lift $ putStrLn "\nNEXT HAND\n"
 
 loop = do
-  putStrLn "First hand plz"
-  rawFirst <- getLine
-  putStrLn "Second hand plz"
-  rawSecond <- getLine
-  let answer = getAnswer rawFirst rawSecond
-  if isJust answer
-    then putStrLn $ "First hand was " ++ (show (fromJust answer)) ++ " second hand"
-    else putStrLn "parse error"
-
+  result :: (Either String ()) <- runEitherT playHand
+  either putStrLn (const $ return ()) result
+  return ()
 
 main :: IO ()
-main = do
-  forever loop
+main = forever loop
