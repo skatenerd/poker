@@ -13,7 +13,7 @@ parseHandE s = let parsed = parseHand s
                  then right parsed
                  else left "Parse Error"
 
-playHand :: EitherT String IO ()
+playHand :: EitherT String IO Ordering
 playHand = do
   lift $ putStrLn "First hand plz"
   rawFirst <- lift getLine
@@ -21,13 +21,14 @@ playHand = do
   lift $ putStrLn "Second hand plz"
   rawSecond <- lift getLine
   secondHand <- parseHandE rawSecond
-  let answer = compare firstHand secondHand
-  lift $ putStrLn $ "\n*******************\nFirst hand was " ++ (show answer) ++ " second hand\n*******************"
-  lift $ putStrLn "\nNEXT HAND\n"
+  right $ compare firstHand secondHand
+
+presentAnswer answer = let message = "\n*******************\nFirst hand was " ++ (show answer) ++ " second hand\n*******************"
+                       in (putStrLn message) >> (putStrLn "NEXT HAND\n")
 
 loop = do
-  result :: (Either String ()) <- runEitherT playHand
-  either putStrLn (const $ return ()) result
+  result :: (Either String Ordering) <- runEitherT playHand
+  either putStrLn presentAnswer result
   return ()
 
 main :: IO ()
