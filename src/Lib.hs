@@ -127,13 +127,15 @@ parseRank s = if elem s $ map show [2..10]
               then Right $ read s
               else parseError
 
+getLast elements = go $ lastMay elements
+                     where go Nothing = parseError
+                           go $ Just e = Right e
+
 parseCard s = do
                 rawRank <- if (length s == 3)
                              then return $ take 2 s
                              else return $ take 1 s
-                rawSuit <- if isJust $ lastMay s
-                             then return $ fromJust $ lastMay s
-                             else parseError
+                rawSuit <- getLast s
                 suit <- parseSuit rawSuit
                 rank <- parseRank rawRank
                 return $ Card suit rank
