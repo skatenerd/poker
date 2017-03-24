@@ -25,8 +25,8 @@ data HandType =
 
 type ComparableHand = (HandType, [Integer])
 
-get_suit (Card suit number) = suit
-get_number (Card suit number) = number
+getSuit (Card suit number) = suit
+getNumber (Card suit number) = number
 
 elementsWithLength lists l  = filter (\list -> (length list == l)) lists
 
@@ -38,19 +38,19 @@ numbersOccurringTimes numbers times = let grouped = group $ sort numbers
 
 makeDescend = reverse . sort
 
-fnorb handType targets numbers = do
+orderBySignificance handType targets numbers = do
                     biggestHits :: [Integer] <- traverse (largestNumberOccurringTimes numbers) targets
                     let remainders = makeDescend $ filter (not . (flip elem biggestHits)) numbers
                     return $ (handType, biggestHits ++ remainders)
 
 getPair :: [Integer] -> Maybe ComparableHand
-getPair = fnorb HTPair [2]
+getPair = orderBySignificance HTPair [2]
 
 getTriple :: [Integer] -> Maybe ComparableHand
-getTriple = fnorb HTTriple [3]
+getTriple = orderBySignificance HTTriple [3]
 
 getQuadruple :: [Integer] -> Maybe ComparableHand
-getQuadruple = fnorb HTQuadruple [4]
+getQuadruple = orderBySignificance HTQuadruple [4]
 
 getTwoPair :: [Integer] -> Maybe ComparableHand
 getTwoPair numbers = let twos = sort $ numbersOccurringTimes numbers 2
@@ -61,7 +61,7 @@ getTwoPair numbers = let twos = sort $ numbersOccurringTimes numbers 2
                        return $ (HTTwoPair, [bigPair, smallPair] ++ remainders)
 
 getFullHouse :: [Integer] -> Maybe ComparableHand
-getFullHouse = fnorb HTFullHouse [3, 2]
+getFullHouse = orderBySignificance HTFullHouse [3, 2]
 
 myshow x = trace (show x) x
 
@@ -87,11 +87,11 @@ getStraightFlush suits numbers = if (isFlush suits) && (isStraight numbers)
                                  then Just $ (HTStraightFlush, [maximum numbers])
                                  else Nothing
 
-make_hand :: (Card, Card, Card, Card, Card) -> ComparableHand
-make_hand (a,b,c,d,e) = let card_list = [a,b,c,d,e]
-                            numbers = map get_number card_list
-                            suits = map get_suit card_list
-                            descending = reverse $ sort $ numbers
+makeHand :: (Card, Card, Card, Card, Card) -> ComparableHand
+makeHand (a,b,c,d,e) = let cardList = [a,b,c,d,e]
+                           numbers = map getNumber cardList
+                           suits = map getSuit cardList
+                           descending = reverse $ sort $ numbers
                         in head $ catMaybes [
                           getStraightFlush suits numbers,
                           getQuadruple numbers,
@@ -107,7 +107,7 @@ make_hand (a,b,c,d,e) = let card_list = [a,b,c,d,e]
 newtype CardCollection = CardCollection (Card, Card, Card, Card, Card) deriving (Eq, Show)
 
 instance Ord CardCollection where
-  compare = compare `on` (make_hand . getCards)
+  compare = compare `on` (makeHand . getCards)
     where getCards (CardCollection cards) = cards
 
 parseSuit 'H' = Just Hearts
