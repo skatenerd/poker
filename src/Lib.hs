@@ -6,6 +6,7 @@ import Data.Maybe
 import Safe
 import Debug.Trace
 import Data.Function
+import Data.Either
 
 data Suit = Hearts | Clubs | Spades | Diamonds deriving (Eq, Show, Ord)
 
@@ -110,25 +111,29 @@ instance Ord CardCollection where
   compare = compare `on` (makeHand . getCards)
     where getCards (CardCollection cards) = cards
 
-parseSuit 'H' = Just Hearts
-parseSuit 'D' = Just Diamonds
-parseSuit 'C' = Just Clubs
-parseSuit 'S' = Just Spades
-parseSuit _ = Nothing
+parseError = Left "Parse Error"
 
-parseRank "J" = Just 11
-parseRank "Q" = Just 12
-parseRank "K" = Just 13
-parseRank "A" = Just 14
+parseSuit 'H' = Right Hearts
+parseSuit 'D' = Right Diamonds
+parseSuit 'C' = Right Clubs
+parseSuit 'S' = Right Spades
+parseSuit _ = parseError
+
+parseRank "J" = Right 11
+parseRank "Q" = Right 12
+parseRank "K" = Right 13
+parseRank "A" = Right 14
 parseRank s = if elem s $ map show [2..10]
-              then Just $ read s
-              else Nothing
+              then Right $ read s
+              else parseError
 
 parseCard s = do
                 rawRank <- if (length s == 3)
                              then return $ take 2 s
                              else return $ take 1 s
-                rawSuit <- lastMay s
+                rawSuit <- if isJust $ lastMay s
+                             then return $ fromJust $ lastMay s
+                             else parseError
                 suit <- parseSuit rawSuit
                 rank <- parseRank rawRank
                 return $ Card suit rank
@@ -140,6 +145,6 @@ parseHand s = do
                   then
                     let [a,b,c,d,e]=cards
                     in return $ CardCollection (a,b,c,d,e)
-                  else Nothing
+                  else parseError
 
 
